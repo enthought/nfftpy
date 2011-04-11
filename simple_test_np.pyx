@@ -11,7 +11,7 @@ import numpy as np
 cimport numpy as np
 
 
-from cnfft3 cimport nfft_plan, nfft_init_1d, nfft_init_guru, \
+from cnfft3 cimport fftw_complex, nfft_plan, nfft_init_1d, nfft_init_guru, \
     nfft_precompute_one_psi, \
     ndft_trafo, nfft_trafo, ndft_adjoint, nfft_adjoint, nfft_finalize, \
     PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI, PRE_FULL_PSI, \
@@ -28,6 +28,36 @@ def nfft_second():
 def printf(fstring, *vals):
     "replacing C print with python print"
     print fstring % vals
+
+cdef complex_fftw_array_to_numpy(fftw_complex *pca, int n):
+    """
+    Given a pointer to an array of fftw_complex, and its size,
+    return the array as a complex numpy array.
+    For now, this is just a copy of the data.
+    """
+    cdef np.ndarray[np.complex128_t] arr = \
+        np.empty(shape=n, dtype='complex128')
+    for i in range(n):
+        arr[i].real = pca[i][0]
+        arr[i].imag = pca[i][1]
+    return arr
+
+cdef nfft_vpr_complex2(fftw_complex *p, int n, title):
+    """
+    Given a pointer to an array of fftw_complex, and its size,
+    and a title string, print the array using both the native NFFT
+    function and numpy.
+    """
+    nfft_vpr_complex(p, n, title)
+    arr = complex_fftw_array_to_numpy(p, n)
+    print "\n  With numpy:"
+    for i in range(0,n,4):
+        print "   %2i" % i,
+        for j in range(i, min(n, i+4)):
+            cx = arr[j]
+            print ' %5.2f + %5.2fJ,' % (cx.real, cx.imag),
+        print
+
 
 def simple_test_nfft_1d():
     cdef nfft_plan p
@@ -47,40 +77,27 @@ def simple_test_nfft_1d():
         nfft_precompute_one_psi(&p)
     # init pseudo random Fourier coefficients and show them
     nfft_vrand_unit_complex(p.f_hat, p.N_total)
-    nfft_vpr_complex(p.f_hat, p.N_total,
+    nfft_vpr_complex2(p.f_hat, p.N_total,
         "given Fourier coefficients, vector f_hat")
 
     # direct trafo and show the result
     t=nfft_second()
     ndft_trafo(&p)
     t=nfft_second() - t
-    nfft_vpr_complex(p.f, p.M_total, "ndft, vector f")
+    nfft_vpr_complex2(p.f, p.M_total, "ndft, vector f")
     printf(" took %e seconds.", t)
 
     # approx. trafo and show the result
     nfft_trafo(&p)
-    nfft_vpr_complex(p.f, p.M_total, "nfft, vector f")
+    nfft_vpr_complex2(p.f, p.M_total, "nfft, vector f")
 
     # approx. adjoint and show the result
     ndft_adjoint(&p)
-    nfft_vpr_complex(p.f_hat, p.N_total, "adjoint ndft, vector f_hat")
-
-    # =========================================== Work in Progress: =========
-    # Show result via numpy array:
-    #cdef np.ndarray[np.complex128_t] f_hat_arr = \
-        #np.empty(shape=p.N_total, dtype='complex128')
-
-
-    print type(p.f_hat[0])
-
-    #for i in range(p.N_total):
-        #f_hat_arr[i] = p.f_hat[i]
-    #print f_hat_arr
-    # =======================================================================
+    nfft_vpr_complex2(p.f_hat, p.N_total, "adjoint ndft, vector f_hat")
 
     # approx. adjoint and show the result
     nfft_adjoint(&p)
-    nfft_vpr_complex(p.f_hat, p.N_total, "adjoint nfft, vector f_hat")
+    nfft_vpr_complex2(p.f_hat, p.N_total, "adjoint nfft, vector f_hat")
 
     # finalise the one dimensional plan
     nfft_finalize(&p)
