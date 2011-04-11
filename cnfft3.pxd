@@ -5,10 +5,12 @@ First cut: only symbols from the first part of nfft3.h (used in simple_test)
 
 """
 
-ctypedef complex fftw_complex
 
 cdef extern from "nfft3.h":
 
+    # Type of complex data in FFTW. FFTW can optionally be compiled to complex.
+    # We do not yet support this.
+    ctypedef double fftw_complex[2]
 
     ctypedef struct nfft_plan:
         # for now, only declaring the few symbols used in simple_test:
