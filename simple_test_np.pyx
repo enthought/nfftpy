@@ -7,9 +7,10 @@ Work in progress, see below.
 """
 import time
 
+from libc.string cimport memcpy
+
 import numpy as np
 cimport numpy as np
-
 
 from cnfft3 cimport fftw_complex, nfft_plan, nfft_init_1d, nfft_init_guru, \
     nfft_precompute_one_psi, \
@@ -20,6 +21,10 @@ from cnfft3 cimport fftw_complex, nfft_plan, nfft_init_1d, nfft_init_guru, \
 
 from cnfft3util cimport nfft_vrand_shifted_unit_double, \
     nfft_vrand_unit_complex, nfft_vpr_complex
+
+# ensure that our numpy complex is the same size as our NFFT/FFTW complex.
+cdef int SIZEOF_COMPLEX = sizeof(np.complex128_t)
+assert  SIZEOF_COMPLEX == sizeof(fftw_complex)
 
 def nfft_second():
     "replacing nfft timer with python timer"
@@ -37,9 +42,7 @@ cdef complex_fftw_array_to_numpy(fftw_complex *pca, int n):
     """
     cdef np.ndarray[np.complex128_t] arr = \
         np.empty(shape=n, dtype='complex128')
-    for i in range(n):
-        arr[i].real = pca[i][0]
-        arr[i].imag = pca[i][1]
+    memcpy(arr.data, pca, n * SIZEOF_COMPLEX)
     return arr
 
 cdef nfft_vpr_complex2(fftw_complex *p, int n, title):
