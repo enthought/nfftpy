@@ -24,6 +24,10 @@ Notes:
 
     * NFFTPY is an early-stage work in progress. Contributions are welcome.
 
+    * FFTW can optionally be compiled to use native complex data types. See:
+    http://www.fftw.org/fftw3_doc/Complex-numbers.html
+    NFFTPY could be adapted to handle either configuration.
+
 
 Cython files:
 
@@ -36,7 +40,8 @@ Cython files:
     * simple_test.pyx - Trivial cython translation of the NFFT example
     simple_test.c. Produces the same output.
 
-    * simple_test_np.pyx - Work in progress, adapting simple_test to numpy.
+    * simple_test_np.pyx - Uses numpy to duplicate the output from the first
+    part of simple_test. (Proof of concept.)
 
     * nfftpy.pyx - Work in progress, class wrapper for NFFT.
 
@@ -46,9 +51,9 @@ Build files:
 
         make clean - delete files from previous builds
 
-        make - build cython extensions using setup.py
+        make - build cython extensions using setup.py (currently simple_test_np)
 
-        make test - test cython extensions (currently just module simple_test)
+        make test - test cython extensions (currently simple_test_np)
 
 
     * setup.py - Build cython extensions
@@ -57,6 +62,9 @@ Done:
 
     * simple_test.pxd runs as expected, producing output equivalent
     to the output from simple_test.c
+
+    * simple_test_np.pxd copies the output to numpy arrays and prints
+    it again from there.
 
 
 To do:
