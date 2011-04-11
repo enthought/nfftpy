@@ -2,9 +2,8 @@
 Setup extension modules for cython wrapper for NFFT.
 
 Command line parameters: build_ext --inplace, optionally followed by:
-    --temp - to build from temp.pyx
-    --simple - to build from simple_test.pyx
-    otherwise builds from simple_test_np.pyx
+    --test testmod - to build from testmod.pyx
+    otherwise builds from simple_test_class.pyx
 
 """
 import sys
@@ -35,15 +34,11 @@ def extension(name):
 def extmods(*names):
     return [extension(name) for name in names]
 
-ext_modules = extmods('simple_test_np')
+ext_modules = extmods('nfftpy')
 if len(sys.argv) > 3:
-    extra = sys.argv[-1]
-    if extra == '--temp':
-        ext_modules = extmods('temp')
-        del sys.argv[-1]
-    elif extra == '--simple':
-        ext_modules = extmods('simple_test')
-        del sys.argv[-1]
+    if sys.argv[-2] == '--test':
+        ext_modules = extmods(sys.argv[-1])
+        del sys.argv[-2:]
 
 setup(
   name = 'NFFT wrapper for Python',

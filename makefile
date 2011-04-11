@@ -2,47 +2,42 @@
 
 # tests in progress:
 
-simple_test_np.so: simple_test_np.c
-	python setup.py build_ext --inplace
-simple_test_np.c: simple_test_np.pyx
-	cython simple_test_np.pyx
+simple_test_class.so: simple_test_class.pyx nfftpy.so
+	python setup.py build_ext --inplace --test simple_test_class
+
+temp.so: temp.pyx
+	python setup.py build_ext --inplace --test temp
+	echo "\n"
+	python -c "import temp"
 
 
-# trivial cythonization of simple_test.c:
+# trivial cythonization of simple_test.c, and with numpy arrays:
 
-simple_test.so: simple_test.c
-	python setup.py build_ext --inplace --simple
-simple_test.c: simple_test.pyx
-	cython simple_test.pyx
+simple_test.so: simple_test.pyx
+	python setup.py build_ext --inplace --test simple_test
+
+simple_test_np.so: simple_test_np.pyx
+	python setup.py build_ext --inplace --test simple_test_np
 
 
 # nfftpy in progress, not working yet:
 
-nfftpy.so: nfftpy.c
+nfftpy.so: nfftpy.pyx
 	python setup.py build_ext --inplace
-nfftpy.c: nfftpy.pyx
-	cython nfftpy.pyx
-
-
-temp.so: temp.c
-	python setup.py build_ext --inplace --temp
-	echo "\n"
-	python -c "import temp"
-temp.c: temp.pyx
-	cython temp.pyx
 
 
 # non-build commands:
 
 test:
-	python -c "import simple_test_np"
+	python -c "import simple_test_class"
 
 test_simple:
-	python -c "import simple_test"
+	python -c "import simple_test_np"
 
 clean:
 	rm -f temp.so temp.c
 	rm -f simple_test.so simple_test.c
 	rm -f simple_test_np.so simple_test_np.c
+	rm -f simple_test_class.so simple_test_class.c
 	rm -f nfftpy.so nfftpy.c
 	rm -rf build/
