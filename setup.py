@@ -25,9 +25,10 @@ def extension(name):
     return Extension(name=name, sources=[name+'.pyx'], **nfft_params)
 
 ext_modules = [extension(name) for name in [
-      'simple_test',
-      'simple_test_np'
-      ]]
+    'test',
+    #'simple_test',
+    #'simple_test_np'
+    ]]
 
 setup(
   name = 'NFFT wrapper for Python',

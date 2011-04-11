@@ -67,10 +67,12 @@ def simple_test_nfft_1d():
 
     # =========================================== Work in Progress: =========
     # Show result via numpy array:
-    cdef np.ndarray[np.complex128_t] f_hat_arr = \
-        np.empty(shape=p.N_total, dtype='complex128')
-    print type(f_hat_arr[0])
+    #cdef np.ndarray[np.complex128_t] f_hat_arr = \
+        #np.empty(shape=p.N_total, dtype='complex128')
+
+
     print type(p.f_hat[0])
+
     #for i in range(p.N_total):
         #f_hat_arr[i] = p.f_hat[i]
     #print f_hat_arr
