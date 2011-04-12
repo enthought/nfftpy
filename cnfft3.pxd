@@ -56,27 +56,10 @@ cdef extern from "nfft3.h":
         PRE_PHI_HUT = 13
         PRE_PSI = 14
 
-    # ==============================
-    # Functions in alphabetic order
-    # ==============================
 
-    # Computes an adjoint NDFT
-    void ndft_adjoint(nfft_plan* ths)
-
-    # Computes a NDFT
-    void ndft_trafo(nfft_plan* ths)
-
-    # Computes an adjoint NFFT
-    void nfft_adjoint(nfft_plan* ths)
-    void nfft_adjoint_1d(nfft_plan* ths)
-    void nfft_adjoint_2d(nfft_plan* ths)
-    void nfft_adjoint_3d(nfft_plan* ths)
-
-    # Checks a transform plan for frequently used bad parameter
-    void nfft_check(nfft_plan* ths)
-
-    # Destroys a transform plan
-    void nfft_finalize(nfft_plan* ths)
+    # =========================================
+    # Initialization and finalization functions
+    # =========================================
 
     # Initialisation of a transform plan, simple:
         # ths The pointer to a nfft plan
@@ -107,6 +90,29 @@ cdef extern from "nfft3.h":
     void nfft_init_guru(nfft_plan* ths, int d, int* N, int M, int* n,
                         int m, unsigned nfft_flags, unsigned fftw_flags)
 
+    # Destroys a transform plan
+    void nfft_finalize(nfft_plan* ths)
+
+
+    # ===================================
+    # Other functions in alphabetic order
+    # ===================================
+
+    # Computes an adjoint NDFT
+    void ndft_adjoint(nfft_plan* ths)
+
+    # Computes a NDFT
+    void ndft_trafo(nfft_plan* ths)
+
+    # Computes an adjoint NFFT
+    void nfft_adjoint(nfft_plan* ths)
+    void nfft_adjoint_1d(nfft_plan* ths)
+    void nfft_adjoint_2d(nfft_plan* ths)
+    void nfft_adjoint_3d(nfft_plan* ths)
+
+    # Checks a transform plan for frequently used bad parameter
+    void nfft_check(nfft_plan* ths)
+
     # Precomputation for a transform plan.
     # if PRE_*_PSI is set the application program has to call this routine
     # (after) setting the nodes x
@@ -117,3 +123,4 @@ cdef extern from "nfft3.h":
     void nfft_trafo_1d(nfft_plan* ths)
     void nfft_trafo_2d(nfft_plan* ths)
     void nfft_trafo_3d(nfft_plan* ths)
+
