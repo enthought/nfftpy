@@ -39,22 +39,21 @@ cdef extern from "nfft3.h":
         double* x
 
     ctypedef enum:
-        # Constant (bit mask) symbols. These are just placeholders with
-        # dummy values. The actual values will come from nfft3.h
-        FFTW_DESTROY_INPUT = 1
-        FFTW_ESTIMATE = 2
-        FFTW_INIT = 3
-        FFT_OUT_OF_PLACE = 4
-        FG_PSI = 5
-        MALLOC_F = 6
-        MALLOC_F_HAT = 7
-        MALLOC_X = 8
-        PRE_FG_PSI = 9
-        PRE_FULL_PSI = 10
-        PRE_LIN_PSI = 11
-        PRE_ONE_PSI = 12
-        PRE_PHI_HUT = 13
-        PRE_PSI = 14
+        # Names of constant (bit mask) symbols; values will come from nfft3.h
+        FFTW_DESTROY_INPUT
+        FFTW_ESTIMATE
+        FFTW_INIT
+        FFT_OUT_OF_PLACE
+        FG_PSI
+        MALLOC_F
+        MALLOC_F_HAT
+        MALLOC_X
+        PRE_FG_PSI
+        PRE_FULL_PSI
+        PRE_LIN_PSI
+        PRE_ONE_PSI
+        PRE_PHI_HUT
+        PRE_PSI
 
 
     # =========================================
