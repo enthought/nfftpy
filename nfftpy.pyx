@@ -39,8 +39,6 @@ cdef class NfftPlanWrapper: #(cnfft3.NfftPlanHolder):
     Thin class wrapper for NFFT functions which take an nfft_plan parameter
     """
 
-    cdef cnfft3.nfft_plan plan
-
     # =======================================
     # Initialization and finalization methods
     # =======================================
