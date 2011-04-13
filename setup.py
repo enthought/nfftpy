@@ -8,7 +8,7 @@ Command line parameters: build_ext --inplace, optionally followed by:
 """
 import sys
 
-from distutils.core import setup
+from setuptools import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
@@ -41,9 +41,25 @@ if len(sys.argv) > 3:
         del sys.argv[-2:]
 
 setup(
-  name = 'NFFT wrapper for Python',
-  ext_modules= ext_modules,
-  cmdclass = {'build_ext': build_ext}
+    name = 'NFFTPY',
+    version = '0.1',
+    description = "Cython wrapper for NFFT",
+    author = 'Enthought, Inc.',
+    author_email = 'info@enthought.com',
+    url='https://github.com/enthought/nfftpy',
+    license = 'BSD-like',
+
+    cmdclass = {'build_ext': build_ext},
+    ext_modules= ext_modules,
+
+    install_requires = [
+        "numpy >= 1.4.0",
+        ],
+
+    zip_safe = False,
+    test_suite = 'nose.collector',
+    tests_require = ['nose >= 0.9'],
 )
+
 
 
