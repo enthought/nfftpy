@@ -30,6 +30,9 @@ cdef extern from "nfft3.h":
         # dimension (rank)
         int d
 
+        # multi-bandwidth (sizes of each dimension?)
+        int *N
+
         # Flags for precomputation, (de)allocation, and FFTW usage.
         # default is PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
         # FFTW_INIT| FFT_OUT_OF_PLACE

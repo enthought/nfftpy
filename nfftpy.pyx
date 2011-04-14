@@ -41,6 +41,7 @@ PRE_PSI = cnfft3.PRE_PSI
 
 
 cdef int SIZEOF_DOUBLE = sizeof(np.double_t)
+cdef int SIZEOF_INT = sizeof(np.int_t)
 
 # ensure that our numpy complex is the same size as our NFFT/FFTW complex.
 cdef int SIZEOF_COMPLEX = sizeof(np.complex128_t)
@@ -50,6 +51,9 @@ assert  SIZEOF_COMPLEX == sizeof(cnfft3.fftw_complex)
 # =============================================================================
 # Conversion routines between C arrays & Numpy arrays (double & complex double)
 # =============================================================================
+
+# C arrays to numpy
+# -----------------
 
 cdef np.ndarray[np.complex128_t] fftw_complex_array_to_numpy(fftw_complex *pca,
                                                              int n_elems):
@@ -71,6 +75,17 @@ cdef np.ndarray[np.double_t] double_array_to_numpy(double *pda, int n_elems):
     memcpy(arr.data, pda, n_elems * SIZEOF_DOUBLE)
     return arr
 
+cdef np.ndarray[np.int_t] int_array_to_numpy(int *pda, int n_elems):
+    """
+    Given a pointer to an array of int, and its size,
+    return a copy of the array as an int numpy array.
+    """
+    cdef np.ndarray[np.int_t] arr = np.empty(shape=n_elems, dtype='int')
+    memcpy(arr.data, pda, n_elems * SIZEOF_INT)
+    return arr
+
+# C arrays from numpy
+# -------------------
 
 cdef _array_from_numpy(void* ptr, int n_elems, int elem_size, arr,
                        void* parrdata):
@@ -102,6 +117,14 @@ cdef double_array_from_numpy(double *pda, int n_elem,
     _array_from_numpy(pda, n_elem, SIZEOF_DOUBLE, arr, <void*>(arr.data))
 
 
+cdef int_array_from_numpy(int *pda, int n_elem,
+                             np.ndarray[np.int_t] arr):
+
+    """ Copy numpy array to matching int C array
+    """
+    _array_from_numpy(pda, n_elem, SIZEOF_INT, arr, <void*>(arr.data))
+
+
 # =============================================================
 # Wrapper class for NFFT Plan - this is the heart of the module
 # =============================================================
@@ -129,16 +152,14 @@ cdef class NfftPlanWrapper:
     # ---------------------------------------
 
     # Initialization class methods create and return a plan object
-    # FIXME: How to convert numpy arrays to int*?
-    # http://mail.scipy.org/pipermail/numpy-discussion/2008-September/037675.html
 
-    #@classmethod
-    #def nfft_init(cls, int d, np.ndarray[np.int_t] N, int M):
-        #cdef NfftPlanWrapper self
-        #self = cls()
-        #cnfft3.nfft_init(&(self.plan), &N, M)
-        #self._is_defined = True
-        #return self
+    @classmethod
+    def nfft_init(cls, int d, np.ndarray[np.int_t] N, int M):
+        cdef NfftPlanWrapper self
+        self = cls()
+        cnfft3.nfft_init(&(self.plan), d, <int*>(N.data), M)
+        self._is_defined = True
+        return self
 
     @classmethod
     def nfft_init_1d(cls, int N1, int M):
@@ -164,16 +185,17 @@ cdef class NfftPlanWrapper:
         self._is_defined = True
         return self
 
-    #@classmethod
-    #def nfft_init_guru(cls, int d, np.ndarray[np.int_t] N, int M,
-                        #np.ndarray[int] n, int m,
-                        #unsigned nfft_flags, unsigned fftw_flags):
-        #cdef NfftPlanWrapper self
-        #self = cls()
-        #cnfft3.nfft_init_guru(&self.plan, d, &N, M, &n, m,
-                              #nfft_flags, fftw_flags)
-        #self._is_defined = True
-        #return self
+    @classmethod
+    def nfft_init_guru(cls, int d, np.ndarray[np.int_t] N, int M,
+                        np.ndarray[int] n, int m,
+                        unsigned nfft_flags, unsigned fftw_flags):
+        cdef NfftPlanWrapper self
+        self = cls()
+        cnfft3.nfft_init_guru(&self.plan, d, <int*>(N.data),
+                              M, <int*>(n.data), m,
+                              nfft_flags, fftw_flags)
+        self._is_defined = True
+        return self
 
     # Finalization (before disposing of plan object)
     def nfft_finalize(self):
@@ -314,6 +336,7 @@ cdef class NfftPlanWrapper:
 
     # Nodes in time/spatial domain (double). Num elements = M_total * d
     x = property(_x_getter, _x_setter)
+
     def _x_getter(self):
         self._check_defined()
         cdef nfft_plan plan = self.plan
@@ -326,4 +349,19 @@ cdef class NfftPlanWrapper:
         nelem = plan.M_total * plan.d
         double_array_from_numpy(plan.x, nelem, arr)
 
+    # "multi-bandwidth" (integer). Apparently num elements = d
+
+    N = property(_N_getter, _N_setter)
+
+    def _N_getter(self):
+        self._check_defined()
+        cdef nfft_plan plan = self.plan
+        nelem = plan.d
+        return int_array_to_numpy(plan.N, nelem)
+
+    def _N_setter(self, arr):
+        self._check_defined()
+        cdef nfft_plan plan = self.plan
+        nelem = plan.d
+        int_array_from_numpy(plan.N, nelem, arr)
 
