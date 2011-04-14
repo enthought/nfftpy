@@ -1,7 +1,7 @@
 """
 Cython mapping of nfft3util.h
 
-First cut: only those symbols used in simple_test
+First cut: only those functions used in simple_test
 
 """
 from cnfft3 cimport fftw_complex
