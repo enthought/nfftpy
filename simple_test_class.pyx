@@ -55,8 +55,8 @@ def simple_test_nfft_1d():
     cdef int M=19
 
     # init an one dimensional plan
-    cdef NfftPlanWrapper planwrap = NfftPlanWrapper.nfft_init_1d(N, M)
-    cdef nfft_plan p = planwrap.plan
+    cdef NfftPlanWrapper pw = NfftPlanWrapper.nfft_init_1d(N, M)
+    cdef nfft_plan p = pw.plan
 
     # init pseudo random nodes
     nfft_vrand_shifted_unit_double(p.x, p.M_total)
@@ -67,7 +67,7 @@ def simple_test_nfft_1d():
 
     # precompute psi, the entries of the matrix B
     if p.nfft_flags & PRE_ONE_PSI:
-        planwrap.nfft_precompute_one_psi()
+        pw.nfft_precompute_one_psi()
     # init pseudo random Fourier coefficients and show them
     nfft_vrand_unit_complex(p.f_hat, p.N_total)
     nfft_vpr_complex2(p.f_hat, p.N_total,
@@ -75,25 +75,25 @@ def simple_test_nfft_1d():
 
     # direct trafo and show the result
     t=nfft_second()
-    planwrap.ndft_trafo()
+    pw.ndft_trafo()
     t=nfft_second() - t
     nfft_vpr_complex2(p.f, p.M_total, "ndft, vector f")
     printf(" took %e seconds.", t)
 
     # approx. trafo and show the result
-    planwrap.nfft_trafo()
+    pw.nfft_trafo()
     nfft_vpr_complex2(p.f, p.M_total, "nfft, vector f")
 
     # approx. adjoint and show the result
-    planwrap.ndft_adjoint()
+    pw.ndft_adjoint()
     nfft_vpr_complex2(p.f_hat, p.N_total, "adjoint ndft, vector f_hat")
 
     # approx. adjoint and show the result
-    planwrap.nfft_adjoint()
+    pw.nfft_adjoint()
     nfft_vpr_complex2(p.f_hat, p.N_total, "adjoint nfft, vector f_hat")
 
     # finalise the one dimensional plan
-    planwrap.nfft_finalize()
+    pw.nfft_finalize()
 
 """
 def simple_test_nfft_2d():
