@@ -1,40 +1,27 @@
 # Make NFFT cython wrapper
 
-# tests in progress:
-
+# cythonization of simple_test.c, but using wrapper class:
 simple_test_class.so: simple_test_class.pyx nfftpy.so
 	python setup.py build_ext --inplace --test simple_test_class
 
-temp.so: temp.pyx
-	python setup.py build_ext --inplace --test temp
-	echo "\n"
-	python -c "import temp"
-
-
-# trivial cythonization of simple_test.c, and with numpy arrays:
-
+# trivial cythonization of simple_test.c:
 simple_test.so: simple_test.pyx
 	python setup.py build_ext --inplace --test simple_test
 
-simple_test_np.so: simple_test_np.pyx
-	python setup.py build_ext --inplace --test simple_test_np
-
-
-# nfftpy in progress, not working yet:
-
+# core wrapper class:
 nfftpy.so: nfftpy.pyx
 	python setup.py build_ext --inplace
 
 
 # non-build commands:
 
-test:
-	python -c "import simple_test_class"
+test: nfftpy.so
+	nosetests -s --verbose
 
-test_simple:
-	python -c "import simple_test_np"
+test_simple: simple_test.so
+	python -c "import simple_test"
 
-test_class:
+test_simple_class: simple_test_class.so
 	python -c "import simple_test_class"
 
 clean:
