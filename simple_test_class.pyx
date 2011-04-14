@@ -164,10 +164,10 @@ def simple_test_nfft_2d():
 """
 
 def main():
-    printf("\n\n1) computing an one dimensional ndft, nfft and an adjoint nfft")
+    printf("\n\n1) computing a one dimensional ndft, nfft and adjoints")
     simple_test_nfft_1d()
 
-    #printf("\n\n2) computing a two dimensional ndft, nfft and an adjoint nfft");
+    #printf("\n\n2) computing a two dimensional ndft, nfft and adjoints");
     #simple_test_nfft_2d()
 
 main()
