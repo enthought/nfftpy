@@ -7,6 +7,8 @@ Converting to class wrapper..... WIP...
 """
 import time
 
+cimport numpy as np
+
 from cnfft3 cimport fftw_complex, nfft_plan, \
     PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI, PRE_FULL_PSI, \
     MALLOC_X, MALLOC_F_HAT, MALLOC_F, FFT_OUT_OF_PLACE, FFTW_INIT, PRE_ONE_PSI,\
@@ -17,7 +19,7 @@ from cnfft3util cimport nfft_vrand_shifted_unit_double, \
 
 from nfftpy import NfftPlanWrapper
 from nfftpy cimport NfftPlanWrapper
-from nfftpy cimport fftw_complex_array_to_numpy
+from nfftpy cimport fftw_complex_array_to_numpy, double_array_to_numpy
 
 def nfft_second():
     "replacing nfft timer with python timer"
@@ -35,7 +37,7 @@ cdef nfft_vpr_complex2(fftw_complex *p, int n, title):
     function and numpy.
     """
     nfft_vpr_complex(p, n, title)
-    arr = fftw_complex_array_to_numpy(p, n)
+    cdef np.ndarray[np.complex128_t] arr = fftw_complex_array_to_numpy(p, n)
     print "\n  With numpy:"
     for i in range(0,n,4):
         print "   %2i" % i,
@@ -43,12 +45,14 @@ cdef nfft_vpr_complex2(fftw_complex *p, int n, title):
             cx = arr[j]
             print ' %5.2f + %5.2fJ,' % (cx.real, cx.imag),
         print
+    for x in arr:
+        print repr(x)
+
 
 def simple_test_nfft_1d():
     cdef double t
     cdef int N=14
     cdef int M=19
-    cdef int n=32
 
     # init an one dimensional plan
     cdef NfftPlanWrapper planwrap = NfftPlanWrapper.nfft_init_1d(N, M)
@@ -56,6 +60,10 @@ def simple_test_nfft_1d():
 
     # init pseudo random nodes
     nfft_vrand_shifted_unit_double(p.x, p.M_total)
+    cdef np.ndarray[np.double_t] _x_arr = double_array_to_numpy(p.x, p.M_total)
+    print 'x values from numpy array:'
+    for x in _x_arr:
+        print repr(x)
 
     # precompute psi, the entries of the matrix B
     if p.nfft_flags & PRE_ONE_PSI:
