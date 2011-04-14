@@ -12,21 +12,24 @@ License:
 
 Prerequisites:
 
-    * WFFT library: http://www.fftw.org/
+    * FFTW library: http://www.fftw.org/
 
     * NFFT library: http://www-user.tu-chemnitz.de/~potts/nfft/
+      The NFFT library does not always install out-of-the-box on 64-bit
+      Linux. (Link failure, not yet investigated.)
 
+    * distribute-0.6.14-3 (bug-fix for hassle-free installation.)
+      If you have EPD, you can update distribute by typing at any shell prompt:
+         $ enpkg distribute
 
 Notes:
-
-    * The NFFT library does not always install out-of-the-box on 64-bit
-    Linux. (Link failure, not yet investigated.)
 
     * NFFTPY is an early-stage work in progress. Contributions are welcome.
 
     * FFTW can optionally be compiled to use native complex data types. See:
     http://www.fftw.org/fftw3_doc/Complex-numbers.html
-    NFFTPY could be adapted to handle either configuration.
+    NFFTPY does not support this option yet, though it could be adapted to
+    support either configuration.
 
 
 Cython files:
