@@ -1,5 +1,7 @@
 # Make NFFT cython wrapper
 
+all: simple_test_class.so simple_test.so
+
 # cythonization of simple_test.c, but using wrapper class:
 simple_test_class.so: simple_test_class.pyx nfftpy.so
 	python setup.py build_ext --inplace --test simple_test_class
