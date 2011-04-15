@@ -15,10 +15,11 @@ NFFTPY License:
 Prerequisites:
 
     * FFTW library: http://www.fftw.org/
+    On a Linux 64-bit system, before installing FFTW, set compile flags:
+        $ export CFLAGS=-fPIC
+    Otherwise NFFT may not be able to link correctly.
 
     * NFFT library: http://www-user.tu-chemnitz.de/~potts/nfft/
-      The NFFT library does not always install out-of-the-box on 64-bit
-      Linux. (Link failure, not yet investigated.)
 
     * distribute-0.6.14-3 (bug-fix for hassle-free installation.)
       If you have EPD, you can update distribute by typing at any shell prompt:
@@ -89,6 +90,8 @@ Build files:
 
 
 To do:
+
+    * Fix integer array type mismatch on 64-bit systems.
 
     * Add unit tests of non-random data sampled from simple functions with
     known transforms.

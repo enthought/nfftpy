@@ -149,6 +149,7 @@ def simple_test_nfft_2d():
 
     t=nfft_second()
     # init a two dimensional plan
+    # FIXME: integer arrays have type mismatch on 64-bit system:
     cdef NfftPlanWrapper pw = \
         NfftPlanWrapper.nfft_init_guru(2, N, M, n, 7,
             PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
