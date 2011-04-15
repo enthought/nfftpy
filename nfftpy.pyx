@@ -1,10 +1,12 @@
 """
 Cython wrapper for NFFT libraries.
 
-NFFT is a C subroutine library for computing the nonequispaced discrete
+"NFFT is a C subroutine library for computing the nonequispaced discrete
 Fourier transform (NDFT) and its generalisations in one or more dimensions, of
-arbitrary input size, and of complex data.
+arbitrary input size, and of complex data."
 http://www-user.tu-chemnitz.de/~potts/nfft/
+
+Class NfftPlanWrapper is the heart of the module.
 
 For example of using this module from python, see unit tests in
     ./tests/test_nfftpy.py
@@ -132,7 +134,10 @@ cdef int_array_from_numpy(int *pda, int n_elem,
 
 cdef class NfftPlanWrapper:
     """
-    Thin class wrapper for NFFT functions which take an nfft_plan parameter
+    Thin class wrapper for NFFT functions which take an nfft_plan parameter.
+
+    Instantiate with one of the class methods nfft_init*.
+    See module tests/test_nfftpy.py for examples of usage.
     """
 
     def _init_(self):
