@@ -10,7 +10,7 @@ generator here, we use the input and output arrays which were previously
 generated and saved to files by simple_test_class.pyx, and were spot-checked
 by hand against the data printed by NFFT's original simple_test.c.
 
-FIXME: Need unit tests examinging non-random data sampled from simple
+FIXME: Need unit tests examining non-random data sampled from simple
 functions with known transforms.
 
 """
