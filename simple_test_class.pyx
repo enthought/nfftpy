@@ -1,8 +1,21 @@
 """
-Direct cythonization of nfft-3.1.3/examples/nfft/simple_test.c,
-plus numpy access to data arrays.
+Example of using NFFTPY from another Cython module.
+(For an example of using NFFTPY from Python, see tests/test_nfftpy.py.)
 
-Converting to class wrapper..... WIP...
+This module is a modification of simple_test.pyx, and like it is a translation
+of the nfft example program, simple_test.c. However, simple_test.pyx only uses
+the NFFT library directly (via its Cython interface), whereas this module uses
+the NFFTPY class wrapper of the nfft_plan structure. As such, it is an
+intermediate stage towards accessing the library from Python, as is done in
+the unit test module tests/test_nfftpy.py.
+
+This module prints the same not very useful output as simple_test.c (and
+.pyx), using the same nfft utility function. It also prints the same data
+using numpy, both in a similar format (for comparison), and with full
+precision.
+
+Finally, it saves the input and output data arrays, in full precision, to text
+files, for use (after moving to the tests directory) in tests/test_nfftpy.py.
 
 """
 import time
@@ -58,6 +71,18 @@ cdef nfft_vpr_complex2(fftw_complex *p, int n, title, n_elems=None):
         print repr(x)
     return arr
 
+def save_arrays_to_file(filename, arrays):
+    """
+    Save each element of each 1D array to the specified file, one element
+    per line. Precede the data from each array by a line which gives the
+    length of that array.
+    """
+    with file(filename, 'w') as f:
+        for _a in arrays:
+            f.write(str(len(_a))+'\n')
+            for _x in _a:
+                f.write(repr(_x).strip('()') + '\n')
+
 
 def simple_test_nfft_1d():
     cdef double t
@@ -70,9 +95,9 @@ def simple_test_nfft_1d():
 
     # init pseudo random nodes
     nfft_vrand_shifted_unit_double(p.x, p.M_total)
-    cdef np.ndarray[np.double_t] _x_arr = double_array_to_numpy(p.x, p.M_total)
+    cdef np.ndarray[np.double_t] x_arr = double_array_to_numpy(p.x, p.M_total)
     print 'x values from numpy array:'
-    for x in _x_arr:
+    for x in x_arr:
         print repr(x)
 
     # precompute psi, the entries of the matrix B
@@ -80,14 +105,14 @@ def simple_test_nfft_1d():
         pw.nfft_precompute_one_psi()
     # init pseudo random Fourier coefficients and show them
     nfft_vrand_unit_complex(p.f_hat, p.N_total)
-    nfft_vpr_complex2(p.f_hat, p.N_total,
+    f_hat_arr = nfft_vpr_complex2(p.f_hat, p.N_total,
         "given Fourier coefficients, vector f_hat")
 
     # direct trafo and show the result
     t=nfft_second()
     pw.ndft_trafo()
     t=nfft_second() - t
-    nfft_vpr_complex2(p.f, p.M_total, "ndft, vector f")
+    f_arr = nfft_vpr_complex2(p.f, p.M_total, "ndft, vector f")
     printf(" took %e seconds.", t)
 
     # approx. trafo and show the result
@@ -96,7 +121,8 @@ def simple_test_nfft_1d():
 
     # approx. adjoint and show the result
     pw.ndft_adjoint()
-    nfft_vpr_complex2(p.f_hat, p.N_total, "adjoint ndft, vector f_hat")
+    f_hat_adj_arr = nfft_vpr_complex2(p.f_hat, p.N_total,
+        "adjoint ndft, vector f_hat")
 
     # approx. adjoint and show the result
     pw.nfft_adjoint()
@@ -104,6 +130,12 @@ def simple_test_nfft_1d():
 
     # finalise the one dimensional plan
     pw.nfft_finalize()
+
+    # Save the input and output arrays for use in unit testing.
+    # We don't save both f or both adjoint f_hat because they
+    # should be almost equal (which is tested in the unit test.)
+    save_arrays_to_file('simple_test_nfft_1d.txt',
+                        [x_arr, f_hat_arr, f_arr, f_hat_adj_arr])
 
 
 def simple_test_nfft_2d():
@@ -183,11 +215,8 @@ def simple_test_nfft_2d():
     # Save the input and output arrays for use in unit testing.
     # We don't save both f or both adjoint f_hat because they
     # should be almost equal (which is tested in the unit test.)
-    with file('simple_test_nfft_2d.txt', 'w') as f:
-        for _a in [x_arr, f_hat_arr, f_arr, f_hat_adj_arr]:
-            f.write(str(len(_a))+'\n')
-            for _x in _a:
-                f.write(repr(_x).strip('()') + '\n')
+    save_arrays_to_file('simple_test_nfft_2d.txt',
+                        [x_arr, f_hat_arr, f_arr, f_hat_adj_arr])
 
 def main():
     printf("\n\n1) computing a one dimensional ndft, nfft and adjoints")

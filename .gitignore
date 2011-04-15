@@ -4,3 +4,5 @@ build
 *.so
 *.c
 temp*.*
+simple_test_nfft_?d.txt
+!tests/simple_test_nfft_?d.txt
