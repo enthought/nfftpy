@@ -28,6 +28,7 @@ Prerequisites:
 Notes:
 
     * NFFTPY is an early-stage work in progress. Contributions are welcome.
+    So far, has only been tested on Linux 32- and 64-bit systems.
 
     * NFFTPY's python interface represents samples and Fourier coefficients as
     complex numpy arrays. By default, FFTW (and so also NFFT) represent these
@@ -52,6 +53,9 @@ Cython wrapper files:
     * nfftpy.pyx - Class wrapper for NFFT. Defines class NfftPlanWrapper,
     which is at the heart of the wrapping.
 
+    * nfftpy.pxd - Cython interface for nfftpy.pyx. Needed when a Cython
+    module wants to cimport from nfftpy.
+
 
 Example and test files:
 
@@ -69,6 +73,9 @@ Example and test files:
     wrapper class. As such, it is the example for how to use NFFTPY from
     Python. It also serves as the unit test module (using nosetests) for the
     wrapper.
+
+    * tests/simple_test_nfft_*.txt - test data files written by
+    simple_test_class.pyx and read by test_nfftpy.py.
 
 
 Build files:
@@ -90,8 +97,6 @@ Build files:
 
 
 To do:
-
-    * Fix integer array type mismatch on 64-bit systems.
 
     * Add unit tests of non-random data sampled from simple functions with
     known transforms.

@@ -10,6 +10,11 @@ generator here, we use the input and output arrays which were previously
 generated and saved to files by simple_test_class.pyx, and were spot-checked
 by hand against the data printed by NFFT's original simple_test.c.
 
+These data files are different when generated on different systems, presumably
+because of different pseudo-random number generation, but they should work on
+any system. Here, for each of the 1d and 2d tests, we use two sets of files,
+which were generated on 32 and 64-bit Ubuntu VMs.
+
 FIXME: Need unit tests examining non-random data sampled from simple
 functions with known transforms.
 
@@ -20,26 +25,25 @@ from numpy.testing import assert_equal, assert_array_almost_equal, \
      assert_raises
 
 from nfftpy import NfftPlanWrapper, \
+    dtype_int, dtype_float, dtype_complex, \
     PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI, PRE_FULL_PSI, \
     MALLOC_X, MALLOC_F_HAT, MALLOC_F, FFT_OUT_OF_PLACE, FFTW_INIT, PRE_ONE_PSI,\
     FFTW_ESTIMATE, FFTW_DESTROY_INPUT
 
 def read_sample_data(filename, pw):
     """
-    Local utility function, called by both 1d and 2d tests.
-
     Read a set of sample data which was written by simple_test_class.pyx. It
     consists of 4 concatenated arrays, each preceded by its number of elements.
     Validate the length of each array against the expected length, given the
     plan wrapper pw.
 
     Returns a list of 4 numpy arrays:
-        x_data : dtype=double
+        x_data : dtype=float
         f_hat_data, f_data, adjoint_f_hat_data : dtype=complex
     """
     num_x = pw.d * pw.M_total
     data_filename = os.path.join(os.path.dirname(__file__), filename)
-    data = np.loadtxt(data_filename, dtype='complex128')
+    data = np.loadtxt(data_filename, dtype=dtype_complex)
     data_divided = []
     i = 0
     corruption_msg = ('test data in %s is apparently corrupted at row %%i' %
@@ -54,13 +58,12 @@ def read_sample_data(filename, pw):
         i += n_elem
     if next_elem != len(data):
         raise IOError(corruption_msg % i)
-    data_divided[0] = data_divided[0].real.copy() # copy so will be contiguous.
+    data_divided[0] = data_divided[0].real.astype(dtype_float)
     return data_divided
 
 
 def check_a_plan(pw, x_data, f_hat_data, f_data, adjoint_f_hat_data):
     """
-    Function called by both 1d and 2d tests.
     After a plan is initialized, feed it data, compute transforms,
     and check the results.
     """
@@ -111,42 +114,46 @@ def check_a_plan(pw, x_data, f_hat_data, f_data, adjoint_f_hat_data):
     assert_raises( RuntimeError, lambda : pw.M_total)
 
 
+def read_and_check(pw, data_filename):
+    sample_data_arrays = read_sample_data( data_filename, pw)
+    check_a_plan(pw, *sample_data_arrays)
+
+
 def simple_test_nfft_1d():
     """
     Reproduce and check the 1d case from examples/nfft/simple_test.c.
     """
     N=14
     M=19
-
-    # init a one dimensional plan
-    pw = NfftPlanWrapper.nfft_init_1d(N, M)
-    assert_equal(pw.M_total, M)
-    assert_equal(pw.N_total, N)
-    assert_equal(pw.d, 1)
-
-    sample_data_arrays = read_sample_data('simple_test_nfft_1d.txt', pw)
-    check_a_plan(pw, *sample_data_arrays)
+    for data_file in ('simple_test_nfft_1d_32.txt',
+                      'simple_test_nfft_1d_64.txt'):
+        # init a one dimensional plan
+        pw = NfftPlanWrapper.nfft_init_1d(N, M)
+        assert_equal(pw.M_total, M)
+        assert_equal(pw.N_total, N)
+        assert_equal(pw.d, 1)
+        read_and_check(pw, data_file)
 
 
 def simple_test_nfft_2d():
     """
     Reproduce and check the 2d case from examples/nfft/simple_test.c.
     """
-    N = np.array([32, 14])
-    n = np.array([64, 32])
+    N = np.array([32, 14], dtype=dtype_int)
+    n = np.array([64, 32], dtype=dtype_int)
     M=N.prod()
+    for data_file in ('simple_test_nfft_2d_32.txt',
+                      'simple_test_nfft_2d_64.txt'):
 
-    # init a two dimensional plan
-    # FIXME: integer arrays have type mismatch on 64-bit system:
-    pw = NfftPlanWrapper.nfft_init_guru(2, N, M, n, 7,
-            PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
-            FFTW_INIT| FFT_OUT_OF_PLACE,
-            FFTW_ESTIMATE| FFTW_DESTROY_INPUT)
+        # init a two dimensional plan
+        pw = NfftPlanWrapper.nfft_init_guru(2, N, M, n, 7,
+                PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
+                FFTW_INIT| FFT_OUT_OF_PLACE,
+                FFTW_ESTIMATE| FFTW_DESTROY_INPUT)
 
-    assert_equal(pw.M_total, M)
-    assert_equal(pw.N_total, M)  # ???? True in this case, but why ????
-    assert_equal(pw.d, 2)
+        assert_equal(pw.M_total, M)
+        assert_equal(pw.N_total, M)  # ???? True in this case, but why ????
+        assert_equal(pw.d, 2)
+        read_and_check(pw, data_file)
 
-    sample_data_arrays = read_sample_data('simple_test_nfft_2d.txt', pw)
-    check_a_plan(pw, *sample_data_arrays)
 

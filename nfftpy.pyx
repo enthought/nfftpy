@@ -22,8 +22,9 @@ cimport numpy as np
 from libc.string cimport memcpy
 
 cimport cnfft3
-from cnfft3 cimport fftw_complex
-cimport cnfft3util
+from cnfft3 cimport fftw_complex, nfft_float, \
+    np_cdef_int, np_cdef_float, np_cdef_complex,\
+    SIZEOF_INT, SIZEOF_FLOAT, SIZEOF_COMPLEX
 
 # bit mask constants for client modules to import:
 FFTW_DESTROY_INPUT = cnfft3.FFTW_DESTROY_INPUT
@@ -42,48 +43,54 @@ PRE_PHI_HUT = cnfft3.PRE_PHI_HUT
 PRE_PSI = cnfft3.PRE_PSI
 
 
-cdef int SIZEOF_DOUBLE = sizeof(np.double_t)
-cdef int SIZEOF_INT = sizeof(np.int_t)
+# In cnfft3.pxd we noted the sizes of the numeric types used in nfft, and
+# defined corresponding numpy cdef types. Ensure that they actually match:
+assert SIZEOF_INT == sizeof(np_cdef_int)
+assert SIZEOF_FLOAT == sizeof(np_cdef_float)
+assert SIZEOF_COMPLEX == sizeof(np_cdef_complex)
 
-# ensure that our numpy complex is the same size as our NFFT/FFTW complex.
-cdef int SIZEOF_COMPLEX = sizeof(np.complex128_t)
-assert  SIZEOF_COMPLEX == sizeof(cnfft3.fftw_complex)
+# Regular (non-cdef) numpy dtypes corresponding to the same numeric types:
+dtype_int = np.dtype('int%i' % (SIZEOF_INT*8))
+dtype_float = np.dtype('float%i' % (SIZEOF_FLOAT*8))
+dtype_complex = np.dtype('complex%i' % (SIZEOF_COMPLEX*8))
+
 
 
 # =============================================================================
-# Conversion routines between C arrays & Numpy arrays (double & complex double)
+# Conversion routines between C arrays & Numpy arrays (float & complex)
 # =============================================================================
 
 # C arrays to numpy
 # -----------------
 
-cdef np.ndarray[np.complex128_t] fftw_complex_array_to_numpy(fftw_complex *pca,
+cdef np.ndarray[np_cdef_complex] fftw_complex_array_to_numpy(fftw_complex *pca,
                                                              int n_elems):
     """
     Given a pointer to an array of fftw_complex, and its size,
     return a copy of the array as a complex numpy array.
     """
-    cdef np.ndarray[np.complex128_t] arr = np.empty(shape=n_elems,
-                                                    dtype='complex128')
+    cdef np.ndarray[np_cdef_complex] arr = np.empty(shape=n_elems,
+                                                    dtype=dtype_complex)
     memcpy(arr.data, pca, n_elems * SIZEOF_COMPLEX)
     return arr
 
-cdef np.ndarray[np.double_t] double_array_to_numpy(double *pda, int n_elems):
+cdef np.ndarray[np_cdef_float] float_array_to_numpy(nfft_float *pfa, int n_elems):
     """
-    Given a pointer to an array of double, and its size,
-    return a copy of the array as a double numpy array.
+    Given a pointer to an array of nfft_float, and its size,
+    return a copy of the array as a float numpy array.
     """
-    cdef np.ndarray[np.double_t] arr = np.empty(shape=n_elems, dtype='double')
-    memcpy(arr.data, pda, n_elems * SIZEOF_DOUBLE)
+    cdef np.ndarray[np_cdef_float] arr = np.empty(shape=n_elems,
+                                                  dtype=dtype_float)
+    memcpy(arr.data, pfa, n_elems * SIZEOF_FLOAT)
     return arr
 
-cdef np.ndarray[np.int_t] int_array_to_numpy(int *pda, int n_elems):
+cdef np.ndarray[np_cdef_int] int_array_to_numpy(int *pfa, int n_elems):
     """
     Given a pointer to an array of int, and its size,
     return a copy of the array as an int numpy array.
     """
-    cdef np.ndarray[np.int_t] arr = np.empty(shape=n_elems, dtype='int')
-    memcpy(arr.data, pda, n_elems * SIZEOF_INT)
+    cdef np.ndarray[np_cdef_int] arr = np.empty(shape=n_elems, dtype=dtype_int)
+    memcpy(arr.data, pfa, n_elems * SIZEOF_INT)
     return arr
 
 # C arrays from numpy
@@ -106,25 +113,25 @@ cdef _array_from_numpy(void* ptr, int n_elems, int elem_size, arr,
     memcpy(ptr, parrdata, n_elems * elem_size)
 
 cdef fftw_complex_array_from_numpy(fftw_complex *pca, int n_elem,
-                                   np.ndarray[np.complex128_t] arr):
+                                   np.ndarray[np_cdef_complex] arr):
     """ Copy numpy array to matching fftw complex C array
     """
     _array_from_numpy(pca, n_elem, SIZEOF_COMPLEX, arr, <void*>(arr.data))
 
-cdef double_array_from_numpy(double *pda, int n_elem,
-                             np.ndarray[np.double_t] arr):
+cdef float_array_from_numpy(nfft_float *pfa, int n_elem,
+                            np.ndarray[np_cdef_float] arr):
 
-    """ Copy numpy array to matching double C array
+    """ Copy numpy array to matching nfft_float C array
     """
-    _array_from_numpy(pda, n_elem, SIZEOF_DOUBLE, arr, <void*>(arr.data))
+    _array_from_numpy(pfa, n_elem, SIZEOF_FLOAT, arr, <void*>(arr.data))
 
 
-cdef int_array_from_numpy(int *pda, int n_elem,
-                             np.ndarray[np.int_t] arr):
+cdef int_array_from_numpy(int *pfa, int n_elem,
+                          np.ndarray[np_cdef_int] arr):
 
     """ Copy numpy array to matching int C array
     """
-    _array_from_numpy(pda, n_elem, SIZEOF_INT, arr, <void*>(arr.data))
+    _array_from_numpy(pfa, n_elem, SIZEOF_INT, arr, <void*>(arr.data))
 
 
 # =============================================================
@@ -159,7 +166,7 @@ cdef class NfftPlanWrapper:
     # Initialization class methods create and return a plan object
 
     @classmethod
-    def nfft_init(cls, int d, np.ndarray[np.int_t] N, int M):
+    def nfft_init(cls, int d, np.ndarray[np_cdef_int] N, int M):
         cdef NfftPlanWrapper self
         self = cls()
         cnfft3.nfft_init(&(self.plan), d, <int*>(N.data), M)
@@ -191,8 +198,8 @@ cdef class NfftPlanWrapper:
         return self
 
     @classmethod
-    def nfft_init_guru(cls, int d, np.ndarray[np.int_t] N, int M,
-                        np.ndarray[int] n, int m,
+    def nfft_init_guru(cls, int d, np.ndarray[np_cdef_int] N, int M,
+                        np.ndarray[np_cdef_int] n, int m,
                         unsigned nfft_flags, unsigned fftw_flags):
         cdef NfftPlanWrapper self
         self = cls()
@@ -339,20 +346,20 @@ cdef class NfftPlanWrapper:
         cdef nfft_plan plan = self.plan
         fftw_complex_array_from_numpy(plan.f_hat, plan.N_total, arr)
 
-    # Nodes in time/spatial domain (double). Num elements = M_total * d
+    # Nodes in time/spatial domain (float). Num elements = M_total * d
     x = property(_x_getter, _x_setter)
 
     def _x_getter(self):
         self._check_defined()
         cdef nfft_plan plan = self.plan
         nelem = plan.M_total * plan.d
-        return double_array_to_numpy(plan.x, nelem)
+        return float_array_to_numpy(plan.x, nelem)
 
     def _x_setter(self, arr):
         self._check_defined()
         cdef nfft_plan plan = self.plan
         nelem = plan.M_total * plan.d
-        double_array_from_numpy(plan.x, nelem, arr)
+        float_array_from_numpy(plan.x, nelem, arr)
 
     # "multi-bandwidth" (integer). Apparently num elements = d
 

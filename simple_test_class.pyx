@@ -23,7 +23,7 @@ import time
 import numpy as np
 cimport numpy as np
 
-from cnfft3 cimport fftw_complex, nfft_plan, \
+from cnfft3 cimport fftw_complex, nfft_plan, np_cdef_float, \
     PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI, PRE_FULL_PSI, \
     MALLOC_X, MALLOC_F_HAT, MALLOC_F, FFT_OUT_OF_PLACE, FFTW_INIT, PRE_ONE_PSI,\
     FFTW_ESTIMATE, FFTW_DESTROY_INPUT
@@ -31,9 +31,9 @@ from cnfft3 cimport fftw_complex, nfft_plan, \
 from cnfft3util cimport nfft_vrand_shifted_unit_double, \
     nfft_vrand_unit_complex, nfft_vpr_complex
 
-from nfftpy import NfftPlanWrapper
+from nfftpy import NfftPlanWrapper, dtype_int
 from nfftpy cimport NfftPlanWrapper
-from nfftpy cimport fftw_complex_array_to_numpy, double_array_to_numpy
+from nfftpy cimport fftw_complex_array_to_numpy, float_array_to_numpy
 
 def nfft_second():
     "replacing nfft timer with python timer"
@@ -85,7 +85,6 @@ def save_arrays_to_file(filename, arrays):
 
 
 def simple_test_nfft_1d():
-    cdef double t
     cdef int N=14
     cdef int M=19
 
@@ -95,7 +94,7 @@ def simple_test_nfft_1d():
 
     # init pseudo random nodes
     nfft_vrand_shifted_unit_double(p.x, p.M_total)
-    cdef np.ndarray[np.double_t] x_arr = double_array_to_numpy(p.x, p.M_total)
+    cdef np.ndarray[np_cdef_float] x_arr = float_array_to_numpy(p.x, p.M_total)
     print 'x values from numpy array:'
     for x in x_arr:
         print repr(x)
@@ -140,16 +139,14 @@ def simple_test_nfft_1d():
 
 def simple_test_nfft_2d():
     cdef int K, k, M
-    cdef double t
 
-    N = np.array([32, 14])
-    n = np.array([64, 32])
+    N = np.array([32, 14], dtype=dtype_int)
+    n = np.array([64, 32], dtype=dtype_int)
     M=N[0]*N[1]
     K=16 # number of entries to show from each array
 
     t=nfft_second()
     # init a two dimensional plan
-    # FIXME: integer arrays have type mismatch on 64-bit system:
     cdef NfftPlanWrapper pw = \
         NfftPlanWrapper.nfft_init_guru(2, N, M, n, 7,
             PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
@@ -160,7 +157,7 @@ def simple_test_nfft_2d():
     # init pseudo random nodes
     num_x = p.d * p.M_total
     nfft_vrand_shifted_unit_double(p.x, num_x)
-    cdef np.ndarray[np.double_t] x_arr = double_array_to_numpy(p.x, num_x)
+    cdef np.ndarray[np_cdef_float] x_arr = float_array_to_numpy(p.x, num_x)
     print 'x values from numpy array (first few entries):'
     for x in x_arr[:K]:
         print repr(x)

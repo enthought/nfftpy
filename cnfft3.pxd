@@ -4,7 +4,7 @@ Cython mapping of nfft3.h
 First cut: only symbols from the first part of nfft3.h (used in simple_test)
 
 """
-
+cimport numpy as np
 
 cdef extern from "nfft3.h":
 
@@ -126,3 +126,20 @@ cdef extern from "nfft3.h":
     void nfft_trafo_2d(nfft_plan* ths)
     void nfft_trafo_3d(nfft_plan* ths)
 
+# =====================================================
+# Numeric type definitions and sizes used in nfft_plan:
+# =====================================================
+
+ctypedef double nfft_float
+
+# Sizes of numeric types used by nfft:
+cdef enum:
+    SIZEOF_INT = sizeof(int)
+    SIZEOF_FLOAT = sizeof(nfft_float)
+    SIZEOF_COMPLEX = sizeof(fftw_complex)
+
+# Numpy cdef-usable dtypes that are size-compatible (though not always
+# C-language assignment-compatible) with numeric types used by nfft:
+ctypedef np.int32_t np_cdef_int
+ctypedef np.float64_t np_cdef_float
+ctypedef np.complex128_t np_cdef_complex
