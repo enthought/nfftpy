@@ -343,6 +343,7 @@ cdef class NfftPlanWrapper:
 
     def _f_hat_setter(self, arr):
         self._check_defined()
+        arr = np.asarray(arr, complex)
         cdef nfft_plan plan = self.plan
         fftw_complex_array_from_numpy(plan.f_hat, plan.N_total, arr)
 
